@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>할 일 미리보기</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <h1>test_todes 목록</h1>
+    <p id="status">불러오는 중...</p>
+    <ul id="todo-list" class="todo-list"></ul>
+    <nav>
+      <a href="index.html">메인으로 돌아가기</a>
+    </nav>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // Supabase 대시보드 > Project Settings > API 에서 값을 복사해 넣으세요
+    const SUPABASE_URL = "https://ukhlfggezbhnseokyygm.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_f3I2xE8-lktdxRD8qjwS6w_TLc8UOfG";
+
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const statusEl = document.getElementById("status");
+    const listEl = document.getElementById("todo-list");
+
+    async function loadTodos() {
+      const { data, error } = await client
+        .from("test_todes")
+        .select("*")
+        .order("due_date", { ascending: true });
+
+      if (error) {
+        statusEl.textContent = "불러오기 실패: " + error.message;
+        return;
+      }
+      if (data.length === 0) {
+        statusEl.textContent = "데이터가 없습니다.";
+        return;
+      }
+
+      statusEl.textContent = "총 " + data.length + "개";
+      data.forEach((row) => {
+        const li = document.createElement("li");
+        if (row.done) {
+          li.classList.add("done");
+        }
+
+        const title = document.createElement("span");
+        title.className = "todo-title";
+        title.textContent = row.title;
+
+        const meta = document.createElement("span");
+        meta.className = "todo-meta";
+        meta.textContent = "수량 " + row.amount + " · 마감 " + (row.due_date ?? "없음");
+
+        li.append(title, meta);
+        listEl.appendChild(li);
+      });
+    }
+
+    loadTodos();
+  </script>
+</body>
+</html>
